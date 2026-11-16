@@ -4,7 +4,8 @@
 관리자는 대화 기록과 신고된 답변을 보고 피드백을 남기면, 그 피드백이 **다음 AI 답변 지침**으로 바로 반영돼요.
 
 - 로컬 실행: `npm start` (저장: `data/` 폴더)
-- 배포: Firebase Hosting + Cloud Functions + Firestore (저장: Firestore, 비밀 값: Secret Manager)
+- 배포 A (무료): **Vercel**(화면·서버, GitHub 연동) + **Firebase Firestore**(데이터) — 비밀 값은 Vercel 환경 변수
+- 배포 B: Firebase Hosting + Cloud Functions + Firestore (Blaze 요금제 필요, 비밀 값은 Secret Manager)
 
 > 상품명·가격은 펫프렌즈 모바일 메인 노출 상품(2026-11-16)을 참고한 **데모용 데이터**이고, 재고·주문·배송·고객은 모두 가상 데이터예요.
 
@@ -35,7 +36,21 @@
 
 관리자 탭은 **관리자 비밀번호**로 로그인해요. (테스트용 연락처 뒤 4자리는 관리자 › 주문 내역에 있어요)
 
-## 3. Firebase 배포
+## 3-A. Vercel + Firebase Firestore 배포 (무료)
+1. Firebase 콘솔에서 Firestore 데이터베이스를 만들고(위치: asia-northeast3), `firebase deploy --only firestore:rules`로 보안 규칙을 올려요.
+2. Firebase 콘솔 › 프로젝트 설정 › **서비스 계정** › **새 비공개 키 생성** → JSON 파일이 내려받아져요. (공유·업로드 금지)
+3. Vercel에서 이 GitHub 저장소를 Import 해요. (설정은 `vercel.json`에 있어서 그대로 Deploy)
+4. Vercel 프로젝트 › Settings › **Environment Variables**에 추가하고 다시 배포해요.
+
+| 이름 | 값 |
+|---|---|
+| `ANTHROPIC_API_KEY` | Claude API 키 |
+| `ADMIN_PASSWORD` | 관리자 화면 비밀번호 |
+| `FIREBASE_SERVICE_ACCOUNT` | 2번 JSON 파일 내용 전체 |
+
+`main` 브랜치에 푸시하면 Vercel이 자동으로 다시 배포해요. 서버 코드는 `api/index.js` → `functions/api.js`(공용)예요.
+
+## 3-B. Firebase 배포 (Blaze 요금제)
 필요한 것: Firebase 프로젝트(**Blaze 요금제** — Cloud Functions·Secret Manager 사용 조건), Firebase CLI
 
 ```bash
@@ -59,6 +74,8 @@ petshop-chatbot/
 │  ├─ defaults.js             기본(가상) 데이터
 │  ├─ index.js                Firebase Cloud Functions 진입점 (비밀 값: Secret Manager)
 │  └─ store-firestore.js      Firestore 저장소
+├─ api/index.js               Vercel 서버 함수 진입점 (functions/api.js + Firestore)
+├─ vercel.json                Vercel 설정 (화면: public/, /api/* → api/index.js, 서울 리전)
 ├─ server.js                  로컬 서버 (functions/api.js + 파일 저장소)
 ├─ store-file.js              로컬 저장소 (data/*.json)
 ├─ firebase.json              Hosting(/api/** → 함수) · Functions · Firestore 설정
@@ -67,14 +84,14 @@ petshop-chatbot/
 ```
 
 ## 5. 데이터는 어디에 저장되나요
-| 데이터 | 로컬 | Firebase |
+| 데이터 | 로컬 | 배포 (Vercel·Firebase 공통) |
 |---|---|---|
 | 상품·재고·주문·배송·정책 | `data/shop.json` | Firestore `shop/main` |
 | 대화 기록·신고·피드백 | `data/sessions.json` | Firestore `sessions` |
 | 피드백 지침 | `data/guides-store.json` | Firestore `guides` |
 | 본인 확인 잠금 | `data/locks.json` | Firestore `locks` |
 | AI 사용량 (방문자당 시간 30회) | `data/rate.json` | Firestore `rate` |
-| AI 키·관리자 비밀번호 | `.env` | Secret Manager |
+| AI 키·관리자 비밀번호 | `.env` | Vercel 환경 변수 (Firebase 배포는 Secret Manager) |
 | 방문자 ID | 브라우저 localStorage (브라우저를 구분하는 표시) | 같음 |
 | 관리자 로그인 토큰(12시간) | 브라우저 sessionStorage | 같음 |
 

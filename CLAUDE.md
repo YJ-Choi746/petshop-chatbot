@@ -4,7 +4,7 @@
 
 ## 실행
 - 로컬: `npm start` → http://localhost:3000 (Node 18+, 외부 의존성 없음). `.env`: `ANTHROPIC_API_KEY`, `ADMIN_PASSWORD`, `ANTHROPIC_MODEL`(기본 claude-haiku-4-5). 요청마다 다시 읽음 → 재시작 불필요
-- 배포: Firebase Hosting(`public/`) + Cloud Functions `api`(asia-northeast3, Node 22) + Firestore. 비밀 값은 `firebase functions:secrets:set ANTHROPIC_API_KEY|ADMIN_PASSWORD`
+- 배포 A(현재): Vercel(`vercel.json`, `api/index.js`, 서울 icn1) + Firestore(서비스 계정 키는 Vercel 환경 변수 `FIREBASE_SERVICE_ACCOUNT`). 배포 B: Firebase Hosting + Cloud Functions `api`(Blaze 필요, 비밀 값은 Secret Manager)
 
 ## 구조
 - `functions/api.js`: API 전체 (로컬·Firebase 공용). 저장소만 주입: 로컬 `store-file.js`(data/*.json), Firebase `functions/store-firestore.js`
