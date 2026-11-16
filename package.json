@@ -1,0 +1,13 @@
+{
+  "name": "petshop-chatbot",
+  "version": "1.0.0",
+  "description": "펫샵 AI 상담 챗봇 + 관리자 페이지 (로컬 테스트용)",
+  "main": "server.js",
+  "private": true,
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
